@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import ResourceCatalog from './components/ResourceCatalog';
 import AdminInventory from './components/AdminInventory';
+import Login from './components/Login';
 import './App.css';
 
 function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const activeView = isAdmin ? 'inventory' : 'catalog';
+  const [session, setSession] = useState(null);
+  const [isAdminView, setIsAdminView] = useState(false);
+
+  if (!session) {
+    return <Login onLogin={setSession} />;
+  }
+
+  const isAdmin = session.user.role === 'ADMIN';
+  const activeView = isAdmin && isAdminView ? 'inventory' : 'catalog';
 
   return (
     <div className="app-shell">
@@ -24,21 +32,23 @@ function App() {
             <button
               type="button"
               className={`nav-item ${activeView === 'catalog' ? 'is-active' : ''}`}
-              onClick={() => setIsAdmin(false)}
+              onClick={() => setIsAdminView(false)}
               aria-current={activeView === 'catalog' ? 'page' : undefined}
             >
               <span className="nav-index">01</span>
               <span>Resource catalog</span>
             </button>
-            <button
-              type="button"
-              className={`nav-item ${activeView === 'inventory' ? 'is-active' : ''}`}
-              onClick={() => setIsAdmin(true)}
-              aria-current={activeView === 'inventory' ? 'page' : undefined}
-            >
-              <span className="nav-index">02</span>
-              <span>Inventory</span>
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                className={`nav-item ${activeView === 'inventory' ? 'is-active' : ''}`}
+                onClick={() => setIsAdminView(true)}
+                aria-current={activeView === 'inventory' ? 'page' : undefined}
+              >
+                <span className="nav-index">02</span>
+                <span>Inventory</span>
+              </button>
+            )}
           </nav>
         </div>
 
@@ -46,16 +56,28 @@ function App() {
           <div className="sidebar-note">
             <span className="note-indicator" aria-hidden="true" />
             <span>
-              <strong>Campus services</strong>
-              <small>Resource coordination</small>
+              <strong>{session.user.name}</strong>
+              <small>{session.user.role.toLowerCase()}</small>
             </span>
           </div>
+          {isAdmin && (
+            <button
+              type="button"
+              className="view-switch"
+              onClick={() => setIsAdminView((previous) => !previous)}
+            >
+              {isAdminView ? 'Return to catalog' : 'Open admin view'}
+            </button>
+          )}
           <button
             type="button"
             className="view-switch"
-            onClick={() => setIsAdmin((prev) => !prev)}
+            onClick={() => {
+              setIsAdminView(false);
+              setSession(null);
+            }}
           >
-            {isAdmin ? 'Return to catalog' : 'Open admin view'}
+            Sign out
           </button>
         </div>
       </aside>
@@ -63,10 +85,12 @@ function App() {
       <main className="main-content" id="main">
         <header className="page-header">
           <div className="page-heading">
-            <p className="eyebrow">Resource services <span>/</span> {isAdmin ? 'Administration' : 'Browse'}</p>
-            <h1>{isAdmin ? 'Inventory management' : 'Resource catalog'}</h1>
+            <p className="eyebrow">
+              Resource services <span>/</span> {isAdminView ? 'Administration' : 'Browse'}
+            </p>
+            <h1>{isAdminView ? 'Inventory management' : 'Resource catalog'}</h1>
             <p className="page-description">
-              {isAdmin
+              {isAdminView
                 ? 'Maintain the spaces and equipment available across campus.'
                 : 'Find the spaces and equipment available to your campus community.'}
             </p>
@@ -75,7 +99,9 @@ function App() {
         </header>
 
         <div className="content-area">
-          {isAdmin ? <AdminInventory /> : <ResourceCatalog />}
+          {isAdminView && isAdmin
+            ? <AdminInventory token={session.token} />
+            : <ResourceCatalog token={session.token} />}
         </div>
       </main>
     </div>

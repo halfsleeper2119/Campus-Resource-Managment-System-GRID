@@ -1,15 +1,10 @@
 const express = require('express');
-
-let prisma = null;
-
-try {
-  const { PrismaClient } = require('@prisma/client');
-  prisma = new PrismaClient();
-} catch (error) {
-  prisma = null;
-}
+const { authenticateToken, requireRole } = require('../middleware/auth');
+const prisma = require('../lib/prisma');
 
 const router = express.Router();
+router.use(authenticateToken);
+
 const ROOM_CATEGORIES = ['labs', 'meeting rooms'];
 const CATEGORIES = [...ROOM_CATEGORIES, 'hardware', 'sports equipment'];
 const memoryResources = [
@@ -175,7 +170,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/resources
-router.post('/', async (req, res) => {
+router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const resource = {
       ...req.body,
@@ -194,7 +189,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/resources/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const existingResource = await getResourceById(id);
@@ -221,7 +216,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/resources/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const result = await deleteResource(id);

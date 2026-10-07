@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
-const RESOURCE_API = 'http://localhost:5000/api/resources';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const RESOURCE_API = `${API_BASE_URL}/api/resources`;
 
-function ResourceCatalog() {
+function ResourceCatalog({ token }) {
   const [resources, setResources] = useState([]);
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Fetch resources when the page loads or the category changes.
   useEffect(() => {
@@ -17,18 +19,27 @@ function ResourceCatalog() {
           ? RESOURCE_API
           : `${RESOURCE_API}?category=${encodeURIComponent(category)}`;
 
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.message || 'Failed to load resources.');
+        }
+
         const data = await response.json();
         setResources(data);
-      } catch (error) {
-        console.error('Error loading resources:', error);
+        setError('');
+      } catch (fetchError) {
+        console.error('Error loading resources:', fetchError);
+        setError(fetchError.message || 'Could not load resources.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchResources();
-  }, [category]);
+  }, [category, token]);
 
   const categories = ['all', 'labs', 'meeting rooms', 'hardware', 'sports equipment'];
 
@@ -51,7 +62,9 @@ function ResourceCatalog() {
         </select>
       </div>
 
-      {loading ? (
+      {error ? (
+        <p role="alert">{error}</p>
+      ) : loading ? (
         <p>Loading resources...</p>
       ) : resources.length === 0 ? (
         <p>No resources found for this category.</p>

@@ -1,8 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-const RESOURCE_API = 'http://localhost:5000/api/resources';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const RESOURCE_API = `${API_BASE_URL}/api/resources`;
 
-function AdminInventory() {
+async function loadInventory(token) {
+  const response = await fetch(RESOURCE_API, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.message || 'Failed to load inventory.');
+  }
+
+  return response.json();
+}
+
+function AdminInventory({ token }) {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -19,21 +32,36 @@ function AdminInventory() {
   });
   const isRoom = ['labs', 'meeting rooms'].includes(form.category);
 
-  const fetchResources = async () => {
+  const fetchResources = useCallback(async () => {
     try {
-      const response = await fetch(RESOURCE_API);
-      const data = await response.json();
-      setResources(data);
+      setResources(await loadInventory(token));
     } catch (error) {
       console.error('Error loading inventory:', error);
+      setMessage(error.message || 'Could not load inventory.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    fetchResources();
-  }, []);
+    let isActive = true;
+
+    loadInventory(token)
+      .then((data) => {
+        if (isActive) setResources(data);
+      })
+      .catch((error) => {
+        console.error('Error loading inventory:', error);
+        if (isActive) setMessage(error.message || 'Could not load inventory.');
+      })
+      .finally(() => {
+        if (isActive) setLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [token]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -95,6 +123,7 @@ function AdminInventory() {
         method,
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -132,15 +161,18 @@ function AdminInventory() {
     try {
       const response = await fetch(`${RESOURCE_API}/${id}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete resource');
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to delete resource.');
       }
 
       fetchResources();
     } catch (error) {
       console.error('Delete failed:', error);
+      setMessage(error.message || 'Could not delete the resource.');
     }
   };
 

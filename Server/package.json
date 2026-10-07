@@ -4,6 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "create-admin": "node scripts/create-admin.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "prisma skills sync || exit 0"
   },
@@ -12,13 +17,14 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^8.0.0-rc.21"
+    "pg": "^8.23.1"
   },
   "allowScripts": {
     "bcrypt@6.0.0": true,
@@ -26,6 +32,7 @@
     "workerd@1.20260901.1": true
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prisma": "^7.10.0"
   }
 }
