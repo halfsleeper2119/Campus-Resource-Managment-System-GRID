@@ -12,6 +12,8 @@ model Resource {
   name        String
   category    String
   isAvailable Boolean  @default(true)
+  timeSlots   String[] @default([])
+  quantity    Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

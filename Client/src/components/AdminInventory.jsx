@@ -6,11 +6,18 @@ function AdminInventory() {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
   const [form, setForm] = useState({
     name: '',
     category: 'labs',
     isAvailable: true,
+    timeSlots: [],
+    quantity: '',
   });
+  const isRoom = ['labs', 'meeting rooms'].includes(form.category);
 
   const fetchResources = async () => {
     try {
@@ -34,33 +41,78 @@ function AdminInventory() {
     setForm((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'category' ? { timeSlots: [], quantity: '' } : {}),
+    }));
+  };
+
+  const addTimeSlot = () => {
+    setMessage('');
+
+    if (!startTime || !endTime || endTime <= startTime) {
+      setMessage('Choose an end time later than the start time.');
+      return;
+    }
+
+    const overlaps = form.timeSlots.some((slot) => {
+      const [existingStart, existingEnd] = slot.split('-');
+      return startTime < existingEnd && endTime > existingStart;
+    });
+
+    if (overlaps) {
+      setMessage('That time overlaps an existing slot.');
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      timeSlots: [...prev.timeSlots, `${startTime}-${endTime}`].sort(),
+    }));
+  };
+
+  const removeTimeSlot = (slotToRemove) => {
+    setForm((prev) => ({
+      ...prev,
+      timeSlots: prev.timeSlots.filter((slot) => slot !== slotToRemove),
     }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setSaving(true);
+    setMessage('');
 
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${RESOURCE_API}/${editingId}` : RESOURCE_API;
+      const payload = {
+        ...form,
+        name: form.name.trim(),
+        timeSlots: isRoom ? form.timeSlots : [],
+        quantity: isRoom ? null : Number(form.quantity),
+      };
 
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save resource');
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to save resource.');
       }
 
-      setForm({ name: '', category: 'labs', isAvailable: true });
+      setForm({ name: '', category: 'labs', isAvailable: true, timeSlots: [], quantity: '' });
       setEditingId(null);
-      fetchResources();
+      setMessage('Resource saved.');
+      await fetchResources();
     } catch (error) {
       console.error('Save failed:', error);
+      setMessage(error.message || 'Could not save the resource.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -70,7 +122,10 @@ function AdminInventory() {
       name: resource.name,
       category: resource.category,
       isAvailable: resource.isAvailable,
+      timeSlots: resource.timeSlots || [],
+      quantity: resource.quantity ?? '',
     });
+    setMessage('');
   };
 
   const handleDelete = async (id) => {
@@ -116,6 +171,52 @@ function AdminInventory() {
           <option value="sports equipment">Sports Equipment</option>
         </select>
 
+        {isRoom ? (
+          <div className="slot-editor">
+            <div className="slot-entry">
+              <label>
+                Start time
+                <input type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
+              </label>
+              <label>
+                End time
+                <input type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} />
+              </label>
+              <button type="button" className="add-slot" onClick={addTimeSlot}>Add slot</button>
+            </div>
+            <div className="time-slot-list" aria-live="polite">
+              {form.timeSlots.length === 0 ? (
+                <span className="slot-hint">Add the daily booking windows for this resource.</span>
+              ) : form.timeSlots.map((slot) => (
+                <span className="time-slot-chip" key={slot}>
+                  {slot.replace('-', ' to ')}
+                  <button
+                    type="button"
+                    onClick={() => removeTimeSlot(slot)}
+                    aria-label={`Remove ${slot.replace('-', ' to ')} slot`}
+                  >
+                    x
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <label className="quantity-field">
+            Quantity
+            <input
+              type="number"
+              name="quantity"
+              min="1"
+              step="1"
+              value={form.quantity}
+              onChange={handleChange}
+              placeholder="Available units"
+              required
+            />
+          </label>
+        )}
+
         <label style={styles.checkboxRow}>
           <input
             type="checkbox"
@@ -126,10 +227,12 @@ function AdminInventory() {
           Available
         </label>
 
-        <button type="submit" style={styles.primaryButton}>
-          {editingId ? 'Update Resource' : 'Add Resource'}
+        <button type="submit" style={styles.primaryButton} disabled={saving}>
+          {saving ? 'Saving...' : editingId ? 'Update Resource' : 'Add Resource'}
         </button>
       </form>
+
+      {message && <p className="inventory-message" role="status">{message}</p>}
 
       {loading ? (
         <p>Loading inventory...</p>
@@ -140,6 +243,7 @@ function AdminInventory() {
               <tr>
                 <th style={styles.th}>Name</th>
                 <th style={styles.th}>Category</th>
+                <th style={styles.th}>Booking details</th>
                 <th style={styles.th}>Status</th>
                 <th style={styles.th}>Actions</th>
               </tr>
@@ -149,6 +253,11 @@ function AdminInventory() {
                 <tr key={resource.id}>
                   <td style={styles.td}>{resource.name}</td>
                   <td style={styles.td}>{resource.category}</td>
+                  <td style={styles.td}>
+                    {['labs', 'meeting rooms'].includes(resource.category)
+                      ? (resource.timeSlots?.map((slot) => slot.replace('-', ' to ')).join(', ') || 'No slots set')
+                      : `${resource.quantity ?? 0} units`}
+                  </td>
                   <td style={styles.td}>
                     {resource.isAvailable ? 'Available' : 'Unavailable'}
                   </td>

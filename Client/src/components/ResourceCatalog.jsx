@@ -61,6 +61,11 @@ function ResourceCatalog() {
             <div key={resource.id} className="resource-tile" style={styles.resourceCard}>
               <div className="resource-category" style={styles.badge}>{resource.category}</div>
               <h3 style={styles.resourceName}>{resource.name}</h3>
+              <p className="resource-details">
+                {['labs', 'meeting rooms'].includes(resource.category)
+                  ? `Booking windows: ${resource.timeSlots?.map((slot) => slot.replace('-', ' to ')).join(', ') || 'Not set'}`
+                  : `Quantity: ${resource.quantity ?? 0} units`}
+              </p>
               <p className="resource-status" style={styles.status}>
                 {resource.isAvailable ? 'Available' : 'Unavailable'}
               </p>
