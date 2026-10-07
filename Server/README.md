@@ -3,9 +3,12 @@
 ## Configure and run
 
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and set `DATABASE_URL` to your PostgreSQL
-   database. Set `JWT_SECRET` to a private random value of at least 32 bytes
-   (for example, generate one with `openssl rand -base64 32`).
+2. Copy `.env.example` to `.env`. Set `DATABASE_URL` to your PostgreSQL
+   connection string (the variable name must be uppercase). Prisma loads this
+   file when its commands run. `DATABASE_URL` is the only variable needed for
+   `db:generate` and `db:push`. Before starting the API, also set `JWT_SECRET`
+   to a private random value of at least 32 bytes (for example, generate one
+   with `openssl rand -base64 32`).
 3. Generate the Prisma client and create/update the database tables:
 
    ```sh
