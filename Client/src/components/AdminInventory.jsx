@@ -90,10 +90,10 @@ function AdminInventory() {
   };
 
   return (
-    <section style={styles.section}>
+    <section className="inventory-panel" style={styles.section}>
       <h2 style={styles.heading}>Admin Inventory</h2>
 
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form className="inventory-form" onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
           name="name"
@@ -135,7 +135,7 @@ function AdminInventory() {
         <p>Loading inventory...</p>
       ) : (
         <div style={styles.tableWrap}>
-          <table style={styles.table}>
+          <table className="inventory-table" style={styles.table}>
             <thead>
               <tr>
                 <th style={styles.th}>Name</th>
@@ -156,6 +156,7 @@ function AdminInventory() {
                     <button
                       type="button"
                       onClick={() => handleEdit(resource)}
+                      className="edit-action"
                       style={styles.editButton}
                     >
                       Edit
@@ -163,6 +164,7 @@ function AdminInventory() {
                     <button
                       type="button"
                       onClick={() => handleDelete(resource.id)}
+                      className="delete-action"
                       style={styles.deleteButton}
                     >
                       Delete
@@ -180,44 +182,47 @@ function AdminInventory() {
 
 const styles = {
   section: {
-    background: '#ffffff',
-    borderRadius: '18px',
-    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
-    padding: '24px',
+    background: 'transparent',
+    borderRadius: '0',
+    boxShadow: 'none',
+    padding: '0',
   },
   heading: {
-    margin: '0 0 16px',
-    fontSize: '2rem',
-    color: '#111827',
+    margin: '0 0 20px',
+    fontSize: '1.45rem',
+    color: '#26352e',
+    fontWeight: 500,
   },
   form: {
     display: 'grid',
-    gridTemplateColumns: '2fr 1.5fr auto auto',
-    gap: '12px',
-    marginBottom: '24px',
+    gridTemplateColumns: 'minmax(200px, 2fr) minmax(165px, 1.5fr) auto auto',
+    gap: '10px',
+    marginBottom: '22px',
     alignItems: 'center',
   },
   input: {
-    padding: '12px 14px',
-    borderRadius: '10px',
-    border: '1px solid #d1d5db',
-    fontSize: '0.95rem',
-    color: '#111827',
+    padding: '9px 11px',
+    borderRadius: '2px',
+    border: '1px solid #cbd3cd',
+    fontSize: '0.88rem',
+    color: '#26352e',
   },
   checkboxRow: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    color: '#111827',
+    color: '#426b56',
     fontWeight: 600,
+    fontSize: '0.84rem',
   },
   primaryButton: {
-    background: '#4f46e5',
+    background: '#203c32',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '10px',
-    padding: '12px 18px',
-    fontWeight: 700,
+    borderRadius: '2px',
+    padding: '10px 15px',
+    fontWeight: 600,
+    fontSize: '0.84rem',
     cursor: 'pointer',
   },
   tableWrap: {
@@ -231,29 +236,29 @@ const styles = {
     textAlign: 'left',
     padding: '12px',
     borderBottom: '1px solid #e5e7eb',
-    color: '#374151',
+    color: '#69766f',
   },
   td: {
     padding: '12px',
     borderBottom: '1px solid #e5e7eb',
-    color: '#111827',
+    color: '#26352e',
   },
   editButton: {
-    background: '#e0e7ff',
-    color: '#312e81',
+    background: '#e9f0e8',
+    color: '#203c32',
     border: 'none',
-    borderRadius: '8px',
-    padding: '8px 10px',
+    borderRadius: '2px',
+    padding: '7px 9px',
     fontWeight: 700,
     cursor: 'pointer',
     marginRight: '8px',
   },
   deleteButton: {
-    background: '#fee2e2',
-    color: '#991b1b',
+    background: '#f7ebe6',
+    color: '#9b452e',
     border: 'none',
-    borderRadius: '8px',
-    padding: '8px 10px',
+    borderRadius: '2px',
+    padding: '7px 9px',
     fontWeight: 700,
     cursor: 'pointer',
   },

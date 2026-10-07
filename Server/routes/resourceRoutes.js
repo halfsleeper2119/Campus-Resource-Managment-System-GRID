@@ -1,20 +1,101 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+
+let prisma = null;
+
+try {
+  const { PrismaClient } = require('@prisma/client');
+  prisma = new PrismaClient();
+} catch (error) {
+  prisma = null;
+}
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const memoryResources = [
+  { id: '1', name: 'Main Lab', category: 'labs', isAvailable: true },
+  { id: '2', name: 'Conference Room A', category: 'meeting rooms', isAvailable: true },
+  { id: '3', name: 'Projector Kit', category: 'hardware', isAvailable: true },
+  { id: '4', name: 'Football Set', category: 'sports equipment', isAvailable: true },
+];
+
+const getResources = async (category) => {
+  if (!prisma) {
+    if (!category || category === 'all') {
+      return memoryResources;
+    }
+
+    return memoryResources.filter((item) => item.category === category);
+  }
+
+  if (!category || category === 'all') {
+    return prisma.resource.findMany({ orderBy: { createdAt: 'desc' } });
+  }
+
+  return prisma.resource.findMany({
+    where: { category: category.toString() },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+const createResource = async (data) => {
+  if (!prisma) {
+    const newResource = {
+      id: Date.now().toString(),
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    memoryResources.unshift(newResource);
+    return newResource;
+  }
+
+  return prisma.resource.create({ data });
+};
+
+const updateResource = async (id, data) => {
+  if (!prisma) {
+    const index = memoryResources.findIndex((resource) => resource.id === id);
+
+    if (index === -1) {
+      throw new Error('Resource not found');
+    }
+
+    memoryResources[index] = {
+      ...memoryResources[index],
+      ...data,
+      updatedAt: new Date(),
+    };
+
+    return memoryResources[index];
+  }
+
+  return prisma.resource.update({
+    where: { id },
+    data,
+  });
+};
+
+const deleteResource = async (id) => {
+  if (!prisma) {
+    const index = memoryResources.findIndex((resource) => resource.id === id);
+
+    if (index === -1) {
+      throw new Error('Resource not found');
+    }
+
+    memoryResources.splice(index, 1);
+    return { message: 'Resource deleted successfully.' };
+  }
+
+  await prisma.resource.delete({ where: { id } });
+  return { message: 'Resource deleted successfully.' };
+};
 
 // GET /api/resources
-// Supports optional category filtering: /api/resources?category=labs
 router.get('/', async (req, res) => {
   try {
     const { category } = req.query;
-
-    const resources = await prisma.resource.findMany({
-      where: category ? { category: category.toString() } : {},
-      orderBy: { createdAt: 'desc' },
-    });
-
+    const resources = await getResources(category || 'all');
     res.status(200).json(resources);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch resources', error: error.message });
@@ -30,14 +111,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Name and category are required.' });
     }
 
-    const newResource = await prisma.resource.create({
-      data: {
-        name,
-        category,
-        isAvailable,
-      },
-    });
-
+    const newResource = await createResource({ name, category, isAvailable });
     res.status(201).json(newResource);
   } catch (error) {
     res.status(500).json({ message: 'Failed to create resource', error: error.message });
@@ -50,13 +124,10 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, category, isAvailable } = req.body;
 
-    const updatedResource = await prisma.resource.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(category !== undefined && { category }),
-        ...(isAvailable !== undefined && { isAvailable }),
-      },
+    const updatedResource = await updateResource(id, {
+      ...(name !== undefined && { name }),
+      ...(category !== undefined && { category }),
+      ...(isAvailable !== undefined && { isAvailable }),
     });
 
     res.status(200).json(updatedResource);
@@ -69,12 +140,8 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
-    await prisma.resource.delete({
-      where: { id },
-    });
-
-    res.status(200).json({ message: 'Resource deleted successfully.' });
+    const result = await deleteResource(id);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete resource', error: error.message });
   }

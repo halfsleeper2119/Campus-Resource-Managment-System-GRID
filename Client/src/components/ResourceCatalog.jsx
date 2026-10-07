@@ -33,11 +33,12 @@ function ResourceCatalog() {
   const categories = ['all', 'labs', 'meeting rooms', 'hardware', 'sports equipment'];
 
   return (
-    <section style={styles.card}>
+    <section className="catalog-panel" style={styles.card}>
       <div style={styles.headerRow}>
         <h2 style={styles.title}>Available Resources</h2>
 
         <select
+          className="catalog-filter"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           style={styles.select}
@@ -55,12 +56,12 @@ function ResourceCatalog() {
       ) : resources.length === 0 ? (
         <p>No resources found for this category.</p>
       ) : (
-        <div style={styles.grid}>
+        <div className="resource-grid" style={styles.grid}>
           {resources.map((resource) => (
-            <div key={resource.id} style={styles.resourceCard}>
-              <div style={styles.badge}>{resource.category}</div>
+            <div key={resource.id} className="resource-tile" style={styles.resourceCard}>
+              <div className="resource-category" style={styles.badge}>{resource.category}</div>
               <h3 style={styles.resourceName}>{resource.name}</h3>
-              <p style={styles.status}>
+              <p className="resource-status" style={styles.status}>
                 {resource.isAvailable ? 'Available' : 'Unavailable'}
               </p>
             </div>
@@ -73,10 +74,10 @@ function ResourceCatalog() {
 
 const styles = {
   card: {
-    background: '#ffffff',
-    borderRadius: '18px',
-    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
-    padding: '24px',
+    background: 'transparent',
+    borderRadius: '0',
+    boxShadow: 'none',
+    padding: '0',
   },
   headerRow: {
     display: 'flex',
@@ -88,16 +89,17 @@ const styles = {
   },
   title: {
     margin: 0,
-    fontSize: '1.9rem',
-    color: '#111827',
+    fontSize: '1.45rem',
+    color: '#26352e',
+    fontWeight: 500,
   },
   select: {
-    padding: '10px 14px',
-    borderRadius: '10px',
-    border: '1px solid #d1d5db',
-    backgroundColor: '#f9fafb',
-    color: '#111827',
-    fontSize: '0.95rem',
+    padding: '8px 34px 8px 11px',
+    borderRadius: '2px',
+    border: '1px solid #cbd3cd',
+    backgroundColor: '#ffffff',
+    color: '#26352e',
+    fontSize: '0.85rem',
   },
   grid: {
     display: 'grid',
@@ -105,32 +107,35 @@ const styles = {
     gap: '16px',
   },
   resourceCard: {
-    background: '#eef2ff',
-    border: '1px solid #dfe6ff',
-    borderRadius: '12px',
-    padding: '18px',
-    minHeight: '140px',
+    background: '#ffffff',
+    border: '1px solid #dce2dc',
+    borderRadius: '3px',
+    padding: '18px 20px',
+    minHeight: '164px',
   },
   badge: {
     display: 'inline-block',
-    background: '#dbeafe',
-    color: '#1d4ed8',
-    borderRadius: '999px',
-    padding: '6px 10px',
-    fontSize: '0.75rem',
+    background: '#edf2ed',
+    color: '#203c32',
+    borderRadius: '2px',
+    padding: '4px 7px',
+    fontSize: '0.68rem',
     fontWeight: 700,
     marginBottom: '12px',
     textTransform: 'capitalize',
   },
   resourceName: {
     margin: '0 0 12px',
-    color: '#111827',
-    fontSize: '1.2rem',
+    color: '#26352e',
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    fontSize: '1.35rem',
+    fontWeight: 400,
   },
   status: {
     margin: 0,
-    fontWeight: 700,
-    color: '#0f766e',
+    fontWeight: 600,
+    color: '#426b56',
+    fontSize: '0.82rem',
   },
 };
 
