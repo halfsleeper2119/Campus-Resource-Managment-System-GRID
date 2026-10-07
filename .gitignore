@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Local editor/tool metadata
+.agents/
+.claude/
+.cursor/
+.devin/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+/dist/
+/build/
+/coverage/
+
+# Logs
+*.log
