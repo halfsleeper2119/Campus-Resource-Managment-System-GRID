@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const resourceRoutes = require('./routes/resourceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +13,9 @@ app.use(express.json());
 app.get('/api/status', (req, res) => {
   res.json({ message: 'Campus Resource API is running' });
 });
+
+// Resource API routes
+app.use('/api/resources', resourceRoutes);
 
 // Start server
 app.listen(PORT, () => {

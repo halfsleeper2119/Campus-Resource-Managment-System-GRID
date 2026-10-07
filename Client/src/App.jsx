@@ -1,12 +1,9 @@
+import { useState } from 'react';
+import ResourceCatalog from './components/ResourceCatalog';
+import AdminInventory from './components/AdminInventory';
+
 function App() {
-  const menuItems = [
-    'Dashboard',
-    'Resources',
-    'Bookings',
-    'Inventory',
-    'Reports',
-    'Settings',
-  ];
+  const [isAdmin, setIsAdmin] = useState(false);
 
   return (
     <div style={styles.page}>
@@ -20,23 +17,26 @@ function App() {
         </div>
 
         <nav style={styles.nav}>
-          {menuItems.map((item, index) => (
-            <button
-              key={item}
-              type="button"
-              style={{
-                ...styles.navButton,
-                ...(index === 0 ? styles.activeNavButton : {}),
-              }}
-            >
-              {item}
-            </button>
-          ))}
+          <button type="button" style={{ ...styles.navButton, ...styles.activeNavButton }}>
+            Dashboard
+          </button>
+          <button type="button" style={styles.navButton}>
+            Resources
+          </button>
+          <button type="button" style={styles.navButton}>
+            Bookings
+          </button>
+          <button type="button" style={styles.navButton}>
+            Inventory
+          </button>
+          <button type="button" style={styles.navButton}>
+            Reports
+          </button>
         </nav>
 
         <div style={styles.sidebarFooter}>
-          <button type="button" style={styles.loginButton}>
-            Login
+          <button type="button" style={styles.switchButton} onClick={() => setIsAdmin((prev) => !prev)}>
+            {isAdmin ? 'Switch to Student View' : 'Switch to Admin View'}
           </button>
         </div>
       </aside>
@@ -49,21 +49,7 @@ function App() {
           </div>
         </header>
 
-        <section style={styles.card}>
-          <div style={styles.cardHeader}>
-            <h2 style={styles.sectionTitle}>Available Resources</h2>
-            <button type="button" style={styles.smallButton}>
-              View All
-            </button>
-          </div>
-
-          <div style={styles.resourceGrid}>
-            <div style={styles.resourceItem}>Lab Room</div>
-            <div style={styles.resourceItem}>Equipment</div>
-            <div style={styles.resourceItem}>Study Space</div>
-            <div style={styles.resourceItem}>Event Venue</div>
-          </div>
-        </section>
+        {isAdmin ? <AdminInventory /> : <ResourceCatalog />}
       </main>
     </div>
   );
@@ -86,9 +72,6 @@ const styles = {
     flexDirection: 'column',
     justifyContent: 'space-between',
     boxShadow: '10px 0 25px rgba(17, 24, 39, 0.18)',
-    position: 'relative',
-    left: 0,
-    animation: 'slideInLeft 0.5s ease-out',
   },
   brandWrap: {
     display: 'flex',
@@ -134,7 +117,6 @@ const styles = {
     fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
   },
   activeNavButton: {
     background: '#1f2937',
@@ -144,14 +126,14 @@ const styles = {
   sidebarFooter: {
     marginTop: '24px',
   },
-  loginButton: {
+  switchButton: {
     width: '100%',
     background: '#7c3aed',
     color: '#ffffff',
     border: 'none',
     borderRadius: '10px',
     padding: '12px 18px',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
     fontWeight: 700,
     cursor: 'pointer',
   },
@@ -179,47 +161,6 @@ const styles = {
     fontSize: '2.2rem',
     color: '#111827',
     fontWeight: 800,
-  },
-  card: {
-    background: '#ffffff',
-    borderRadius: '18px',
-    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
-    padding: '24px',
-  },
-  cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px',
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: '1.9rem',
-    color: '#111827',
-  },
-  smallButton: {
-    background: '#e0e7ff',
-    color: '#1f2a44',
-    border: 'none',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  resourceGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: '18px',
-  },
-  resourceItem: {
-    background: '#eef2ff',
-    border: '1px solid #dfe6ff',
-    borderRadius: '12px',
-    padding: '24px 18px',
-    fontWeight: 700,
-    color: '#1e1b4b',
-    textAlign: 'center',
-    boxShadow: 'inset 0 0 0 1px rgba(99,102,241,0.04)',
   },
 };
 
