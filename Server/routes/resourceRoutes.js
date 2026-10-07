@@ -158,7 +158,6 @@ const deleteResource = async (id) => {
   return { message: 'Resource deleted successfully.' };
 };
 
-// GET /api/resources
 router.get('/', async (req, res) => {
   try {
     const { category } = req.query;
@@ -169,7 +168,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/resources
 router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const resource = {
@@ -188,7 +186,6 @@ router.post('/', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
-// PUT /api/resources/:id
 router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -215,7 +212,6 @@ router.put('/:id', requireRole('ADMIN'), async (req, res) => {
   }
 });
 
-// DELETE /api/resources/:id
 router.delete('/:id', requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;

@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const bcrypt = require('bcrypt');
 const prisma = require('../lib/prisma');
-const PASSWORD_MIN_LENGTH = 12;
+const PASSWORD_MIN_LENGTH = 6;
 
 async function createInitialAdmin() {
   const name = process.env.ADMIN_NAME?.trim();
@@ -18,7 +18,7 @@ async function createInitialAdmin() {
     || Buffer.byteLength(password, 'utf8') > 72
   ) {
     throw new Error(
-      'Set a valid ADMIN_NAME and ADMIN_EMAIL, plus an ADMIN_PASSWORD between 12 and 72 UTF-8 bytes.',
+      'Set a valid ADMIN_NAME and ADMIN_EMAIL, plus an ADMIN_PASSWORD between 6 and 72 UTF-8 bytes.',
     );
   }
 

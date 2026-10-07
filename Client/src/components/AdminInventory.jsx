@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 const RESOURCE_API = `${API_BASE_URL}/api/resources`;
 
 async function loadInventory(token) {
