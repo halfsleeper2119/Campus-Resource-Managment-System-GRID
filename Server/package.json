@@ -9,7 +9,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "create-admin": "node scripts/create-admin.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],

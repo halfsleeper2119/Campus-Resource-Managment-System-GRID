@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
+import BookingForm from './BookingForm';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 const RESOURCE_API = `${API_BASE_URL}/api/resources`;
 
-function ResourceCatalog({ token }) {
+function ResourceCatalog({ token, onBooked }) {
   const [resources, setResources] = useState([]);
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedResource, setSelectedResource] = useState(null);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -61,6 +63,14 @@ function ResourceCatalog({ token }) {
         </select>
       </div>
 
+      {selectedResource && <BookingForm
+        key={selectedResource.id}
+        token={token}
+        resource={selectedResource}
+        onSaved={onBooked}
+        onCancel={() => setSelectedResource(null)}
+      />}
+
       {error ? (
         <p role="alert">{error}</p>
       ) : loading ? (
@@ -81,6 +91,12 @@ function ResourceCatalog({ token }) {
               <p className="resource-status" style={styles.status}>
                 {resource.isAvailable ? 'Available' : 'Unavailable'}
               </p>
+              <button
+                type="button"
+                className="book-resource account-cancel"
+                disabled={!resource.isAvailable || Boolean(selectedResource)}
+                onClick={() => setSelectedResource(resource)}
+              >Book resource</button>
             </div>
           ))}
         </div>
