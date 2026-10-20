@@ -5,7 +5,9 @@ import AdminUsers from './components/AdminUsers';
 import ManageUsers from './components/ManageUsers';
 import Login from './components/Login';
 import Settings from './components/Settings';
+import MyBookings from './components/MyBookings';
 import './App.css';
+import './components/Bookings.css';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -18,7 +20,7 @@ function App() {
   const isAdmin = session.user.role === 'ADMIN';
   const visibleView = isAdmin
     ? activeView
-    : activeView === 'settings' ? 'settings' : 'catalog';
+    : ['settings', 'bookings'].includes(activeView) ? activeView : 'catalog';
   const pageDetails = {
     catalog: {
       section: 'Browse',
@@ -45,6 +47,11 @@ function App() {
       title: 'Settings',
       description: 'Manage your account security.',
     },
+    bookings: {
+      section: 'Browse',
+      title: 'My bookings',
+      description: 'View your bookings and change the date or time when plans shift.',
+    },
   }[visibleView];
 
   return (
@@ -70,6 +77,15 @@ function App() {
               <span className="nav-index">01</span>
               <span>Resource catalog</span>
             </button>
+            <button
+              type="button"
+              className={`nav-item ${visibleView === 'bookings' ? 'is-active' : ''}`}
+              onClick={() => setActiveView('bookings')}
+              aria-current={visibleView === 'bookings' ? 'page' : undefined}
+            >
+              <span className="nav-index">02</span>
+              <span>My bookings</span>
+            </button>
             {isAdmin && (
               <button
                 type="button"
@@ -77,7 +93,7 @@ function App() {
                 onClick={() => setActiveView('inventory')}
                 aria-current={visibleView === 'inventory' ? 'page' : undefined}
               >
-                <span className="nav-index">02</span>
+                <span className="nav-index">03</span>
                 <span>Inventory</span>
               </button>
             )}
@@ -88,7 +104,7 @@ function App() {
                 onClick={() => setActiveView('users')}
                 aria-current={visibleView === 'users' ? 'page' : undefined}
               >
-                <span className="nav-index">03</span>
+                <span className="nav-index">04</span>
                 <span>Users</span>
               </button>
             )}
@@ -99,7 +115,7 @@ function App() {
                 onClick={() => setActiveView('manageUsers')}
                 aria-current={visibleView === 'manageUsers' ? 'page' : undefined}
               >
-                <span className="nav-index">04</span>
+                <span className="nav-index">05</span>
                 <span>Manage accounts</span>
               </button>
             )}
@@ -167,7 +183,9 @@ function App() {
                 ? <ManageUsers token={session.token} />
                 : visibleView === 'settings' && !isAdmin
                   ? <Settings token={session.token} />
-                  : <ResourceCatalog token={session.token} />}
+                  : visibleView === 'bookings'
+                    ? <MyBookings token={session.token} />
+                    : <ResourceCatalog token={session.token} onBooked={() => setActiveView('bookings')} />}
         </div>
       </main>
     </div>
