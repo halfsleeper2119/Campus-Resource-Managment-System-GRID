@@ -1,0 +1,98 @@
+.utilization-report {
+  display: grid;
+  gap: 18px;
+}
+
+.utilization-report-controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.utilization-report-controls .user-form-field {
+  width: min(100%, 230px);
+}
+
+.utilization-month-heading {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.utilization-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.utilization-metric {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.utilization-metric span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.utilization-metric strong {
+  color: var(--forest);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.utilization-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.utilization-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.utilization-table th,
+.utilization-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.utilization-table thead th {
+  background: #f7f8f5;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.utilization-table tbody th {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.utilization-table tbody td {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.utilization-report-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 680px) {
+  .utilization-summary {
+    grid-template-columns: 1fr;
+  }
+}

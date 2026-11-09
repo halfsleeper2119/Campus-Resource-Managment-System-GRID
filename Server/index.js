@@ -5,6 +5,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 
 app.use('/api/resources', resourceRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/reports', reportRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {

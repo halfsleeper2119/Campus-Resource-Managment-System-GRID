@@ -8,10 +8,13 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
   let baseUrl;
   let alice;
   let bob;
+  let admin;
   let aliceToken;
   let bobToken;
+  let adminToken;
   const resourceIds = [];
   const initial = { date: '2099-01-10', startTime: '09:00', endTime: '10:00' };
+  let reportUrl;
 
   before(async () => {
     process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
@@ -25,20 +28,25 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
     bob = await prisma.user.create({ data: {
       id: randomUUID(), name: 'Booking test faculty', role: 'FACULTY', passwordHash: 'test-only',
     } });
+    admin = await prisma.user.create({ data: {
+      id: randomUUID(), name: 'Booking test admin', role: 'ADMIN', passwordHash: 'test-only',
+    } });
     const token = (user) => jwt.sign({ role: user.role }, process.env.JWT_SECRET, {
       subject: user.id, expiresIn: '10m', algorithm: 'HS256',
     });
     aliceToken = token(alice);
     bobToken = token(bob);
+    adminToken = token(admin);
     await new Promise((resolve) => { server = app.listen(0, '127.0.0.1', resolve); });
     baseUrl = `http://127.0.0.1:${server.address().port}/api/bookings`;
+    reportUrl = `http://127.0.0.1:${server.address().port}/api/reports/monthly-utilization`;
   });
 
   after(async () => {
     if (server) await new Promise((resolve) => server.close(resolve));
     if (prisma) {
       await prisma.resource.deleteMany({ where: { id: { in: resourceIds } } });
-      await prisma.user.deleteMany({ where: { id: { in: [alice?.id, bob?.id].filter(Boolean) } } });
+      await prisma.user.deleteMany({ where: { id: { in: [alice?.id, bob?.id, admin?.id].filter(Boolean) } } });
       await prisma.$disconnect();
     }
   });
@@ -56,6 +64,13 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
       method,
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    return { status: response.status, body: await response.json() };
+  }
+
+  async function requestReport(month, token = adminToken) {
+    const response = await fetch(`${reportUrl}?month=${encodeURIComponent(month)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return { status: response.status, body: await response.json() };
   }
@@ -85,6 +100,22 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
     const occupied = result.body.bookings.find((booking) => booking.resourceId === item.id);
     assert.equal(occupied.startsAt, '2099-01-10T04:00:00.000Z');
     assert.equal(occupied.userId, undefined);
+  });
+
+  test('monthly utilization report is admin-only and aggregates bookings by resource', async () => {
+    const item = await resource();
+    await book(item);
+
+    assert.equal((await requestReport('2099-01', null)).status, 401);
+    assert.equal((await requestReport('2099-01', aliceToken)).status, 403);
+    assert.equal((await requestReport('2099-13')).status, 400);
+
+    const report = await requestReport('2099-01');
+    assert.equal(report.status, 200);
+    const resourceReport = report.body.resources.find((entry) => entry.id === item.id);
+    assert.equal(resourceReport.bookingCount, 1);
+    assert.equal(resourceReport.bookedHours, 1);
+    assert.equal(report.body.month, '2099-01');
   });
 
   test('a date-only change keeps the booking identity and survives a reload', async () => {

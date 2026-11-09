@@ -7,6 +7,7 @@ import Login from './components/Login';
 import Settings from './components/Settings';
 import MyBookings from './components/MyBookings';
 import AvailabilityCalendar from './components/AvailabilityCalendar';
+import UtilizationReport from './components/UtilizationReport';
 import './App.css';
 import './components/Bookings.css';
 
@@ -48,6 +49,11 @@ function App() {
       section: 'Administration',
       title: 'Manage accounts',
       description: 'Search, update, or remove student and faculty accounts.',
+    },
+    utilizationReport: {
+      section: 'Administration',
+      title: 'Monthly utilization',
+      description: 'Review booking demand and capacity utilization across resources.',
     },
     settings: {
       section: 'Account',
@@ -127,11 +133,22 @@ function App() {
             {isAdmin && (
               <button
                 type="button"
+                className={`nav-item ${visibleView === 'utilizationReport' ? 'is-active' : ''}`}
+                onClick={() => setActiveView('utilizationReport')}
+                aria-current={visibleView === 'utilizationReport' ? 'page' : undefined}
+              >
+                <span className="nav-index">06</span>
+                <span>Monthly utilization</span>
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                type="button"
                 className={`nav-item ${visibleView === 'manageUsers' ? 'is-active' : ''}`}
                 onClick={() => setActiveView('manageUsers')}
                 aria-current={visibleView === 'manageUsers' ? 'page' : undefined}
               >
-                <span className="nav-index">06</span>
+                <span className="nav-index">07</span>
                 <span>Manage accounts</span>
               </button>
             )}
@@ -198,6 +215,8 @@ function App() {
               ? <AdminUsers token={session.token} />
               : visibleView === 'manageUsers' && isAdmin
                 ? <ManageUsers token={session.token} />
+                : visibleView === 'utilizationReport' && isAdmin
+                  ? <UtilizationReport token={session.token} />
                 : visibleView === 'settings' && !isAdmin
                   ? <Settings token={session.token} />
                   : visibleView === 'availability'
