@@ -6,6 +6,7 @@ import ManageUsers from './components/ManageUsers';
 import Login from './components/Login';
 import Settings from './components/Settings';
 import MyBookings from './components/MyBookings';
+import AvailabilityCalendar from './components/AvailabilityCalendar';
 import './App.css';
 import './components/Bookings.css';
 
@@ -21,12 +22,17 @@ function App() {
   const isAdmin = session.user.role === 'ADMIN';
   const visibleView = isAdmin
     ? activeView
-    : ['settings', 'bookings'].includes(activeView) ? activeView : 'catalog';
+    : ['settings', 'bookings', 'availability'].includes(activeView) ? activeView : 'catalog';
   const pageDetails = {
     catalog: {
       section: 'Browse',
       title: 'Resource catalog',
       description: 'Find the spaces and equipment available to your campus community.',
+    },
+    availability: {
+      section: 'Browse',
+      title: 'Resource availability',
+      description: 'Compare open and booked time slots in day or week view.',
     },
     inventory: {
       section: 'Administration',
@@ -80,11 +86,20 @@ function App() {
             </button>
             <button
               type="button"
+              className={`nav-item ${visibleView === 'availability' ? 'is-active' : ''}`}
+              onClick={() => setActiveView('availability')}
+              aria-current={visibleView === 'availability' ? 'page' : undefined}
+            >
+              <span className="nav-index">02</span>
+              <span>Availability calendar</span>
+            </button>
+            <button
+              type="button"
               className={`nav-item ${visibleView === 'bookings' ? 'is-active' : ''}`}
               onClick={() => setActiveView('bookings')}
               aria-current={visibleView === 'bookings' ? 'page' : undefined}
             >
-              <span className="nav-index">02</span>
+              <span className="nav-index">03</span>
               <span>My bookings</span>
             </button>
             {isAdmin && (
@@ -94,7 +109,7 @@ function App() {
                 onClick={() => setActiveView('inventory')}
                 aria-current={visibleView === 'inventory' ? 'page' : undefined}
               >
-                <span className="nav-index">03</span>
+                <span className="nav-index">04</span>
                 <span>Inventory</span>
               </button>
             )}
@@ -105,7 +120,7 @@ function App() {
                 onClick={() => setActiveView('users')}
                 aria-current={visibleView === 'users' ? 'page' : undefined}
               >
-                <span className="nav-index">04</span>
+                <span className="nav-index">05</span>
                 <span>Users</span>
               </button>
             )}
@@ -116,7 +131,7 @@ function App() {
                 onClick={() => setActiveView('manageUsers')}
                 aria-current={visibleView === 'manageUsers' ? 'page' : undefined}
               >
-                <span className="nav-index">05</span>
+                <span className="nav-index">06</span>
                 <span>Manage accounts</span>
               </button>
             )}
@@ -185,7 +200,15 @@ function App() {
                 ? <ManageUsers token={session.token} />
                 : visibleView === 'settings' && !isAdmin
                   ? <Settings token={session.token} />
-                  : visibleView === 'bookings'
+                  : visibleView === 'availability'
+                    ? <AvailabilityCalendar
+                      token={session.token}
+                      onBooked={(booking) => {
+                        setBookingNotification(booking.notification);
+                        setActiveView('bookings');
+                      }}
+                    />
+                    : visibleView === 'bookings'
                     ? <MyBookings
                       token={session.token}
                       notification={bookingNotification}

@@ -2,6 +2,7 @@ const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const prisma = require('../lib/prisma');
 const { BookingError, createBookingService } = require('../lib/bookings');
+const { getAvailabilityRange } = require('../lib/availability');
 const { notifyBookingStatus } = require('../lib/bookingNotifications');
 
 const router = express.Router();
@@ -40,6 +41,43 @@ router.get('/', async (req, res) => {
     return res.json(await bookings.list(req.user.id));
   } catch (error) {
     return handleError(res, error);
+  }
+});
+
+router.get('/availability', async (req, res) => {
+  const days = Number(req.query.days);
+  const range = getAvailabilityRange(req.query.date, days);
+  if (!range) {
+    return res.status(400).json({ message: 'Choose a valid date and a day or week view.' });
+  }
+
+  try {
+    const resources = await prisma.resource.findMany({
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        isAvailable: true,
+        timeSlots: true,
+        quantity: true,
+      },
+    });
+    const bookings = resources.length
+      ? await prisma.booking.findMany({
+        where: {
+          resourceId: { in: resources.map((resource) => resource.id) },
+          startsAt: { lt: range.endsAt },
+          endsAt: { gt: range.startsAt },
+        },
+        select: { resourceId: true, startsAt: true, endsAt: true },
+      })
+      : [];
+
+    return res.json({ resources, bookings });
+  } catch (error) {
+    console.error('Resource availability lookup failed:', error);
+    return res.status(500).json({ message: 'Unable to load resource availability.' });
   }
 });
 

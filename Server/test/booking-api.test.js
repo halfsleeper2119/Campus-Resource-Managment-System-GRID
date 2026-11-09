@@ -68,9 +68,23 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
 
   test('all booking routes require sign-in', async () => {
     for (const method of ['GET', 'POST', 'PATCH', 'DELETE']) {
-      const response = await request(method, method === 'PATCH' ? '/missing' : '', method === 'GET' ? undefined : initial, null);
+      const path = method === 'PATCH' || method === 'DELETE'
+        ? '/missing'
+        : method === 'GET' ? '/availability?date=2099-01-10&days=1' : '';
+      const response = await request(method, path, method === 'GET' ? undefined : initial, null);
       assert.equal(response.status, 401);
     }
+  });
+
+  test('availability shows resource bookings without exposing their owners', async () => {
+    const item = await resource();
+    await book(item);
+    const result = await request('GET', '/availability?date=2099-01-10&days=1');
+    assert.equal(result.status, 200);
+    assert.ok(result.body.resources.some((resource) => resource.id === item.id));
+    const occupied = result.body.bookings.find((booking) => booking.resourceId === item.id);
+    assert.equal(occupied.startsAt, '2099-01-10T04:00:00.000Z');
+    assert.equal(occupied.userId, undefined);
   });
 
   test('a date-only change keeps the booking identity and survives a reload', async () => {

@@ -3,16 +3,16 @@ import { campusFields } from '../utils/bookingTime';
 
 const BOOKING_API = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/bookings`;
 
-function BookingForm({ token, resource, booking, onSaved, onCancel }) {
+function BookingForm({ token, resource, booking, initialSlot, onSaved, onCancel }) {
   const [date, setDate] = useState(() => booking
     ? campusFields(booking.startsAt).date
-    : campusFields(new Date(Date.now() + 86_400_000)).date);
+    : initialSlot?.date || campusFields(new Date(Date.now() + 86_400_000)).date);
   const [startTime, setStartTime] = useState(() => booking
     ? campusFields(booking.startsAt).time
-    : resource.timeSlots?.[0]?.split('-')[0] || '09:00');
+    : initialSlot?.startTime || resource.timeSlots?.[0]?.split('-')[0] || '09:00');
   const [endTime, setEndTime] = useState(() => booking
     ? campusFields(booking.endsAt).time
-    : resource.timeSlots?.[0]?.split('-')[1] || '10:00');
+    : initialSlot?.endTime || resource.timeSlots?.[0]?.split('-')[1] || '10:00');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const isRoom = ['labs', 'meeting rooms'].includes(resource.category);
