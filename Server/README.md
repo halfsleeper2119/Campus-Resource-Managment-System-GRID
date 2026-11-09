@@ -19,6 +19,13 @@ node -p "require('crypto').randomBytes(32).toString('base64')"
 Add `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` to `.env` for the initial
 admin. The password must be 6–72 UTF-8 bytes.
 
+To send booking confirmation and cancellation notifications, configure
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, and `SMTP_FROM`. Set `SMTP_USER` and
+`SMTP_PASSWORD` when the SMTP server requires authentication. The sender address
+in `SMTP_FROM` must be authorized by your email provider. If SMTP is not
+configured or delivery fails, the booking still succeeds and the user is told
+that the notification could not be sent.
+
 ## 2. Create tables and the initial admin
 
 The API uses the PostgreSQL database configured by `DATABASE_URL` for users,

@@ -67,7 +67,7 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
   }
 
   test('all booking routes require sign-in', async () => {
-    for (const method of ['GET', 'POST', 'PATCH']) {
+    for (const method of ['GET', 'POST', 'PATCH', 'DELETE']) {
       const response = await request(method, method === 'PATCH' ? '/missing' : '', method === 'GET' ? undefined : initial, null);
       assert.equal(response.status, 401);
     }
@@ -149,6 +149,18 @@ describe('Booking API with PostgreSQL', { skip: !process.env.TEST_DATABASE_URL }
     const result = await request('PATCH', `/${started.id}`, initial);
     assert.equal(result.status, 400);
     assert.equal((await prisma.booking.findUnique({ where: { id: started.id } })).startsAt.getTime(), started.startsAt.getTime());
+  });
+
+  test('cancels a future booking only for its owner', async () => {
+    const item = await resource();
+    const original = await book(item);
+    const denied = await request('DELETE', `/${original.id}`, undefined, bobToken);
+    assert.equal(denied.status, 404);
+    const cancelled = await request('DELETE', `/${original.id}`);
+    assert.equal(cancelled.status, 200);
+    assert.equal(cancelled.body.id, original.id);
+    assert.equal(cancelled.body.notification.sent, false);
+    assert.equal(await prisma.booking.findUnique({ where: { id: original.id } }), null);
   });
 
   test('cannot change the booking owner or resource through the update payload', async () => {

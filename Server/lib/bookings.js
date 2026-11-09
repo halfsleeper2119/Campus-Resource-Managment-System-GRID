@@ -130,6 +130,17 @@ function createBookingService(prisma, now = () => new Date()) {
     }),
     create: (userId, body) => save(userId, body),
     reschedule: (userId, bookingId, body) => save(userId, body, bookingId),
+    async cancel(userId, bookingId) {
+      const booking = await prisma.booking.findFirst({
+        where: { id: bookingId, userId },
+        include,
+      });
+      if (!booking) throw new BookingError(404, 'Booking not found.');
+      if (booking.startsAt <= now()) {
+        throw new BookingError(400, 'Only bookings that have not started can be cancelled.');
+      }
+      return prisma.booking.delete({ where: { id: booking.id }, include });
+    },
   };
 }
 

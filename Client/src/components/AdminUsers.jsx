@@ -31,7 +31,10 @@ function AdminUsers({ token }) {
       role,
       password,
       ...(role === 'STUDENT'
-        ? { rollNumber: rollNumber.trim().toUpperCase() }
+        ? {
+          rollNumber: rollNumber.trim().toUpperCase(),
+          email: formData.get('email').trim().toLowerCase(),
+        }
         : { email: formData.get('email').trim().toLowerCase() }),
     };
 
@@ -109,7 +112,7 @@ function AdminUsers({ token }) {
           />
         </div>
 
-        {role === 'STUDENT' ? (
+        {role === 'STUDENT' && (
           <div className="user-form-field">
             <label htmlFor="user-roll-number">Student roll number</label>
             <RollNumberInput
@@ -124,19 +127,19 @@ function AdminUsers({ token }) {
             />
             <span className="user-field-hint">Format: XXY-XXXX (e.g. 22L-1234)</span>
           </div>
-        ) : (
-          <div className="user-form-field">
-            <label htmlFor="user-email">Faculty email address</label>
-            <input
-              id="user-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="name@university.edu"
-              required
-            />
-          </div>
         )}
+
+        <div className="user-form-field">
+          <label htmlFor="user-email">{role === 'STUDENT' ? 'Student email address' : 'Faculty email address'}</label>
+          <input
+            id="user-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="name@university.edu"
+            required
+          />
+        </div>
 
         <div className="user-form-field">
           <label htmlFor="user-password">Temporary password</label>

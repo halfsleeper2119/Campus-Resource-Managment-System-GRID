@@ -97,3 +97,45 @@ test('unexpected database errors are not retried or hidden as availability error
   await assert.rejects(service.create('user', body), failure);
   assert.equal(attempts, 1);
 });
+
+test('cancellation deletes a future booking owned by the requesting user', async () => {
+  const futureBooking = {
+    id: 'booking-1',
+    userId: 'user-1',
+    startsAt: new Date('2030-01-02T04:00:00Z'),
+    resource: { name: 'Test lab' },
+  };
+  let deletedId;
+  const service = createBookingService({
+    booking: {
+      findFirst: async ({ where }) => (where.id === futureBooking.id
+        && where.userId === futureBooking.userId ? futureBooking : null),
+      delete: async ({ where }) => {
+        deletedId = where.id;
+        return futureBooking;
+      },
+    },
+  }, () => now);
+
+  assert.equal(await service.cancel('user-1', 'booking-1'), futureBooking);
+  assert.equal(deletedId, 'booking-1');
+});
+
+test('cancellation rejects missing, other users’, and started bookings', async () => {
+  const startedBooking = {
+    id: 'started-booking',
+    userId: 'user-1',
+    startsAt: new Date('2029-12-31T23:00:00Z'),
+  };
+  const service = createBookingService({
+    booking: {
+      findFirst: async ({ where }) => (where.id === startedBooking.id
+        && where.userId === startedBooking.userId ? startedBooking : null),
+      delete: async () => assert.fail('A rejected booking must not be deleted.'),
+    },
+  }, () => now);
+
+  await assert.rejects(service.cancel('user-1', 'missing'), { status: 404 });
+  await assert.rejects(service.cancel('another-user', 'started-booking'), { status: 404 });
+  await assert.rejects(service.cancel('user-1', 'started-booking'), { status: 400 });
+});

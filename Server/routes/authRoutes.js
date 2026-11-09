@@ -189,12 +189,12 @@ router.post('/users', authenticateToken, requireRole('ADMIN'), async (req, res) 
   }
 
   if (
-    (role === 'STUDENT' && (!STUDENT_ROLL_NUMBER_PATTERN.test(rollNumber) || email))
+    (role === 'STUDENT' && (!STUDENT_ROLL_NUMBER_PATTERN.test(rollNumber) || !EMAIL_PATTERN.test(email)))
     || (role === 'FACULTY' && (!EMAIL_PATTERN.test(email) || rollNumber))
   ) {
     return res.status(400).json({
       message: role === 'STUDENT'
-        ? 'Student accounts require a roll number in the format XXY-XXXX (two digits, one letter, a dash, and four digits).'
+        ? 'Student accounts require a roll number in the format XXY-XXXX and a valid email address.'
         : 'Faculty accounts require a valid email address.',
     });
   }
@@ -204,7 +204,7 @@ router.post('/users', authenticateToken, requireRole('ADMIN'), async (req, res) 
       data: {
         name: name.trim(),
         role,
-        email: role === 'FACULTY' ? email : null,
+        email,
         rollNumber: role === 'STUDENT' ? rollNumber : null,
         passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
       },
@@ -269,19 +269,19 @@ router.patch('/users/:id', authenticateToken, requireRole('ADMIN'), async (req, 
     const isStudent = existingUser.role === 'STUDENT';
 
     if (
-      (isStudent && (!STUDENT_ROLL_NUMBER_PATTERN.test(rollNumber) || email))
+      (isStudent && (!STUDENT_ROLL_NUMBER_PATTERN.test(rollNumber) || !EMAIL_PATTERN.test(email)))
       || (!isStudent && (!EMAIL_PATTERN.test(email) || rollNumber))
     ) {
       return res.status(400).json({
         message: isStudent
-          ? 'Student accounts require a roll number in the format XXY-XXXX.'
+          ? 'Student accounts require a roll number in the format XXY-XXXX and a valid email address.'
           : 'Faculty accounts require a valid email address.',
       });
     }
 
     const data = {
       name: name.trim(),
-      ...(isStudent ? { rollNumber } : { email }),
+      ...(isStudent ? { rollNumber, email } : { email }),
       ...(typeof password === 'string' && password
         ? { passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) }
         : {}),

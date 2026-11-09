@@ -12,6 +12,7 @@ import './components/Bookings.css';
 function App() {
   const [session, setSession] = useState(null);
   const [activeView, setActiveView] = useState('catalog');
+  const [bookingNotification, setBookingNotification] = useState(null);
 
   if (!session) {
     return <Login onLogin={setSession} />;
@@ -154,6 +155,7 @@ function App() {
             className="view-switch"
             onClick={() => {
               setActiveView('catalog');
+              setBookingNotification(null);
               setSession(null);
             }}
           >
@@ -184,8 +186,18 @@ function App() {
                 : visibleView === 'settings' && !isAdmin
                   ? <Settings token={session.token} />
                   : visibleView === 'bookings'
-                    ? <MyBookings token={session.token} />
-                    : <ResourceCatalog token={session.token} onBooked={() => setActiveView('bookings')} />}
+                    ? <MyBookings
+                      token={session.token}
+                      notification={bookingNotification}
+                      onDismissNotification={() => setBookingNotification(null)}
+                    />
+                    : <ResourceCatalog
+                      token={session.token}
+                      onBooked={(booking) => {
+                        setBookingNotification(booking.notification);
+                        setActiveView('bookings');
+                      }}
+                    />}
         </div>
       </main>
     </div>

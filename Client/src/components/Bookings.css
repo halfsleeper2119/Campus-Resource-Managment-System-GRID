@@ -32,6 +32,16 @@
   gap: 20px;
 }
 
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.booking-actions button {
+  margin: 0;
+}
+
 .booking-summary h2 {
   margin: 0 0 10px;
   font-family: Georgia, 'Times New Roman', serif;

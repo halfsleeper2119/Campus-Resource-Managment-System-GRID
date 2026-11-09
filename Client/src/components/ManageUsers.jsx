@@ -91,7 +91,10 @@ function ManageUsers({ token }) {
     const payload = {
       name: formData.get('name').trim(),
       ...(editingUser.role === 'STUDENT'
-        ? { rollNumber: rollNumber.trim().toUpperCase() }
+        ? {
+          rollNumber: rollNumber.trim().toUpperCase(),
+          email: formData.get('email').trim().toLowerCase(),
+        }
         : { email: formData.get('email').trim().toLowerCase() }),
       ...(password ? { password } : {}),
     };
@@ -250,7 +253,7 @@ function ManageUsers({ token }) {
             <input name="name" defaultValue={editingUser.name} maxLength="120" required />
           </label>
 
-          {editingUser.role === 'STUDENT' ? (
+          {editingUser.role === 'STUDENT' && (
             <label className="user-form-field">
               <span>Student roll number</span>
               <RollNumberInput
@@ -263,18 +266,18 @@ function ManageUsers({ token }) {
               />
               <span className="user-field-hint">Format: XXY-XXXX</span>
             </label>
-          ) : (
-            <label className="user-form-field">
-              <span>Faculty email address</span>
-              <input
-                name="email"
-                type="email"
-                defaultValue={editingUser.email}
-                autoComplete="email"
-                required
-              />
-            </label>
           )}
+
+          <label className="user-form-field">
+            <span>{editingUser.role === 'STUDENT' ? 'Student email address' : 'Faculty email address'}</span>
+            <input
+              name="email"
+              type="email"
+              defaultValue={editingUser.email}
+              autoComplete="email"
+              required
+            />
+          </label>
 
           <label className="user-form-field">
             <span>New password <span className="optional-label">(optional)</span></span>
