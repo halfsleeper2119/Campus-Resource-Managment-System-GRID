@@ -31,6 +31,10 @@ that the notification could not be sent.
 The API uses the PostgreSQL database configured by `DATABASE_URL` for users,
 resources, and bookings. Run the schema sync whenever the Prisma schema changes;
 this includes creating the `Booking` table for booking support.
+Equipment availability is calculated from overlapping bookings and the
+resource's configured quantity. A cancelled booking frees its unit immediately,
+and completed time ranges no longer count against availability; no inventory
+counter migration or scheduled cleanup is needed.
 
 Run from `Server`:
 

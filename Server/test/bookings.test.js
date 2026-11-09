@@ -68,6 +68,16 @@ test('equipment capacity uses peak usage and allows adjacent bookings', () => {
   assert.equal(hasCapacity({ ...equipment, quantity: 0 }, times, []), false);
 });
 
+test('equipment units are released after a booking ends or is cancelled', () => {
+  const equipment = { category: 'hardware', quantity: 1 };
+  const endedBooking = parseBookingTimes({ ...body, startTime: '08:00', endTime: '09:00' }, now);
+  const overlappingBooking = parseBookingTimes({ ...body, startTime: '09:30', endTime: '10:30' }, now);
+
+  assert.equal(hasCapacity(equipment, times, [endedBooking]), true);
+  assert.equal(hasCapacity(equipment, times, [overlappingBooking]), false);
+  assert.equal(hasCapacity(equipment, times, []), true);
+});
+
 for (const [name, conflict] of [
   ['Prisma conflict', Object.assign(new Error('Write conflict'), { code: 'P2034' })],
   ['pg adapter commit conflict', Object.assign(new Error('Write conflict'), {

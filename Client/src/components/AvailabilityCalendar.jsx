@@ -35,16 +35,18 @@ function isWithinResourceHours(resource, startTime, endTime) {
 function cellAvailability(resource, bookings, date, startTime, endTime, now) {
   const startsAt = new Date(`${date}T${startTime}:00+05:00`);
   const endsAt = new Date(`${date}T${endTime}:00+05:00`);
-  if (startsAt <= now) return 'past';
+  const isRoom = ['labs', 'meeting rooms'].includes(resource.category);
+  const capacity = isRoom ? 1 : resource.quantity ?? 0;
+  if (startsAt <= now) return { status: 'past', capacity, remaining: 0 };
   if (!resource.isAvailable || !isWithinResourceHours(resource, startTime, endTime)) {
-    return 'closed';
+    return { status: 'closed', capacity, remaining: 0 };
   }
 
   const concurrentBookings = bookings.filter((booking) => (
     new Date(booking.startsAt) < endsAt && new Date(booking.endsAt) > startsAt
   )).length;
-  const capacity = ['labs', 'meeting rooms'].includes(resource.category) ? 1 : resource.quantity ?? 0;
-  return concurrentBookings < capacity ? 'available' : 'booked';
+  const remaining = Math.max(0, capacity - concurrentBookings);
+  return { status: remaining > 0 ? 'available' : 'booked', capacity, remaining };
 }
 
 function AvailabilityCalendar({ token, onBooked }) {
@@ -198,7 +200,7 @@ function AvailabilityCalendar({ token, onBooked }) {
                       <tr key={startTime}>
                         <th scope="row">{startTime}</th>
                         {dates.map((day) => {
-                          const status = cellAvailability(
+                          const availability = cellAvailability(
                             selectedResource,
                             resourceBookings,
                             day,
@@ -206,18 +208,36 @@ function AvailabilityCalendar({ token, onBooked }) {
                             endTime,
                             now,
                           );
+                          const isEquipment = !['labs', 'meeting rooms'].includes(selectedResource.category);
+                          const timeLabel = `${formatBookingDate(`${day}T12:00:00+05:00`)} from ${startTime} to ${endTime}`;
                           return (
                             <td key={day}>
-                              {status === 'available' ? (
+                              {availability.status === 'available' ? (
                                 <button
                                   type="button"
                                   className="availability-slot available"
-                                  aria-label={`Book ${selectedResource.name} on ${formatBookingDate(`${day}T12:00:00+05:00`)} from ${startTime} to ${endTime}`}
+                                  aria-label={isEquipment
+                                    ? `${availability.remaining} of ${availability.capacity} units available for ${selectedResource.name} on ${timeLabel}`
+                                    : `Book ${selectedResource.name} on ${timeLabel}`}
+                                  title={isEquipment
+                                    ? `${availability.remaining} of ${availability.capacity} units available`
+                                    : 'Available'}
                                   onClick={() => setSelectedSlot({ date: day, startTime, endTime })}
-                                >Available</button>
+                                >{isEquipment ? `${availability.remaining} left` : 'Available'}</button>
                               ) : (
-                                <span className={`availability-slot ${status}`} aria-label={status}>
-                                  {status === 'booked' ? 'Booked' : status === 'past' ? 'Past' : 'Closed'}
+                                <span
+                                  className={`availability-slot ${availability.status}`}
+                                  aria-label={isEquipment && availability.status === 'booked'
+                                    ? `0 of ${availability.capacity} units available`
+                                    : availability.status}
+                                  title={isEquipment && availability.status === 'booked'
+                                    ? `0 of ${availability.capacity} units available`
+                                    : undefined}
+                                >
+                                  {isEquipment && availability.status === 'booked'
+                                    ? '0 left'
+                                    : availability.status === 'booked' ? 'Booked'
+                                      : availability.status === 'past' ? 'Past' : 'Closed'}
                                 </span>
                               )}
                             </td>
