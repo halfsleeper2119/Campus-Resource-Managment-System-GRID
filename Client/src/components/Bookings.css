@@ -17,6 +17,19 @@
   list-style: none;
 }
 
+.booking-group {
+  display: grid;
+  gap: 12px;
+}
+
+.booking-group-heading {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+
 .booking-card,
 .booking-form {
   padding: 24px;
@@ -42,7 +55,7 @@
   margin: 0;
 }
 
-.booking-summary h2 {
+.booking-summary h3 {
   margin: 0 0 10px;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 24px;

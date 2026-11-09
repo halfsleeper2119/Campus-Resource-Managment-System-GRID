@@ -21,6 +21,14 @@ function MyBookings({ token, notification, onDismissNotification }) {
   const [message, setMessage] = useState(null);
   const [editing, setEditing] = useState(null);
   const [cancelling, setCancelling] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
+  const upcomingBookings = bookings.filter((booking) => new Date(booking.startsAt).getTime() > now);
+  const pastBookings = bookings.filter((booking) => new Date(booking.startsAt).getTime() <= now);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -93,46 +101,69 @@ function MyBookings({ token, notification, onDismissNotification }) {
       {error ? <p className="user-form-message error" role="alert">{error}</p>
         : loading ? <p role="status">Loading bookings...</p>
           : bookings.length === 0 ? <p className="account-directory-empty">No bookings yet. Choose a resource from the catalog to make one.</p>
-            : <ul className="booking-list">
-              {bookings.map((booking) => {
-                const canChange = new Date(booking.startsAt) > new Date();
-                return (
-                  <li className="booking-card" key={booking.id}>
-                    <div className="booking-summary">
-                      <div>
-                        <p className="user-management-kicker">{booking.resource.category}</p>
-                        <h2>{booking.resource.name}</h2>
-                        <p>{formatBookingDate(booking.startsAt)}</p>
-                        <p className="booking-time">{campusFields(booking.startsAt).time} to {campusFields(booking.endsAt).time}</p>
-                      </div>
-                      {canChange ? <div className="booking-actions">
-                        <button
-                          type="button"
-                          className="account-cancel"
-                          disabled={Boolean(editing) || Boolean(cancelling)}
-                          onClick={() => { setEditing(booking.id); setMessage(null); }}
-                        >Change date or time</button>
-                        <button
-                          type="button"
-                          className="account-delete"
-                          disabled={Boolean(editing) || Boolean(cancelling)}
-                          onClick={() => handleCancel(booking)}
-                        >{cancelling === booking.id ? 'Cancelling...' : 'Cancel booking'}</button>
-                      </div>
-                        : <p className="user-field-hint">This booking has started and cannot be changed.</p>}
-                    </div>
-                    {editing === booking.id && <BookingForm
-                      key={booking.id}
-                      token={token}
-                      resource={booking.resource}
-                      booking={booking}
-                      onSaved={handleSaved}
-                      onCancel={() => setEditing(null)}
-                    />}
-                  </li>
-                );
-              })}
-            </ul>}
+            : <>
+              <section className="booking-group" aria-labelledby="upcoming-bookings-heading">
+                <h2 className="booking-group-heading" id="upcoming-bookings-heading">Upcoming bookings</h2>
+                {upcomingBookings.length === 0
+                  ? <p className="account-directory-empty">You have no upcoming bookings.</p>
+                  : <ul className="booking-list">
+                    {upcomingBookings.map((booking) => (
+                      <li className="booking-card" key={booking.id}>
+                        <div className="booking-summary">
+                          <div>
+                            <p className="user-management-kicker">{booking.resource.category}</p>
+                            <h3>{booking.resource.name}</h3>
+                            <p>{formatBookingDate(booking.startsAt)}</p>
+                            <p className="booking-time">{campusFields(booking.startsAt).time} to {campusFields(booking.endsAt).time}</p>
+                          </div>
+                          <div className="booking-actions">
+                            <button
+                              type="button"
+                              className="account-cancel"
+                              disabled={Boolean(editing) || Boolean(cancelling)}
+                              onClick={() => { setEditing(booking.id); setMessage(null); }}
+                            >Change date or time</button>
+                            <button
+                              type="button"
+                              className="account-delete"
+                              disabled={Boolean(editing) || Boolean(cancelling)}
+                              onClick={() => handleCancel(booking)}
+                            >{cancelling === booking.id ? 'Cancelling...' : 'Cancel booking'}</button>
+                          </div>
+                        </div>
+                        {editing === booking.id && <BookingForm
+                          key={booking.id}
+                          token={token}
+                          resource={booking.resource}
+                          booking={booking}
+                          onSaved={handleSaved}
+                          onCancel={() => setEditing(null)}
+                        />}
+                      </li>
+                    ))}
+                  </ul>}
+              </section>
+              {pastBookings.length > 0 && (
+                <section className="booking-group" aria-labelledby="past-bookings-heading">
+                  <h2 className="booking-group-heading" id="past-bookings-heading">Past bookings</h2>
+                  <ul className="booking-list">
+                    {pastBookings.map((booking) => (
+                      <li className="booking-card" key={booking.id}>
+                        <div className="booking-summary">
+                          <div>
+                            <p className="user-management-kicker">{booking.resource.category}</p>
+                            <h3>{booking.resource.name}</h3>
+                            <p>{formatBookingDate(booking.startsAt)}</p>
+                            <p className="booking-time">{campusFields(booking.startsAt).time} to {campusFields(booking.endsAt).time}</p>
+                          </div>
+                          <p className="user-field-hint">This booking has started and can no longer be changed or cancelled.</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </>}
     </section>
   );
 }
