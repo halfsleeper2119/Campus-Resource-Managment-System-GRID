@@ -7,22 +7,7 @@ router.use(authenticateToken);
 
 const ROOM_CATEGORIES = ['labs', 'meeting rooms'];
 const CATEGORIES = [...ROOM_CATEGORIES, 'hardware', 'sports equipment'];
-const memoryResources = [
-  { id: '1', name: 'Main Lab', category: 'labs', isAvailable: true, timeSlots: ['09:00-10:00', '10:00-11:00'], quantity: null },
-  { id: '2', name: 'Conference Room A', category: 'meeting rooms', isAvailable: true, timeSlots: ['13:00-14:00', '14:00-15:00'], quantity: null },
-  { id: '3', name: 'Projector Kit', category: 'hardware', isAvailable: true, timeSlots: [], quantity: 12 },
-  { id: '4', name: 'Football Set', category: 'sports equipment', isAvailable: true, timeSlots: [], quantity: 6 },
-];
-
 const getResources = async (category) => {
-  if (!prisma) {
-    if (!category || category === 'all') {
-      return memoryResources;
-    }
-
-    return memoryResources.filter((item) => item.category === category);
-  }
-
   if (!category || category === 'all') {
     return prisma.resource.findMany({ orderBy: { createdAt: 'desc' } });
   }
@@ -34,46 +19,14 @@ const getResources = async (category) => {
 };
 
 const createResource = async (data) => {
-  if (!prisma) {
-    const newResource = {
-      id: Date.now().toString(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    memoryResources.unshift(newResource);
-    return newResource;
-  }
-
   return prisma.resource.create({ data });
 };
 
 const getResourceById = async (id) => {
-  if (!prisma) {
-    return memoryResources.find((resource) => resource.id === id) || null;
-  }
-
   return prisma.resource.findUnique({ where: { id } });
 };
 
 const updateResource = async (id, data) => {
-  if (!prisma) {
-    const index = memoryResources.findIndex((resource) => resource.id === id);
-
-    if (index === -1) {
-      throw new Error('Resource not found');
-    }
-
-    memoryResources[index] = {
-      ...memoryResources[index],
-      ...data,
-      updatedAt: new Date(),
-    };
-
-    return memoryResources[index];
-  }
-
   return prisma.resource.update({
     where: { id },
     data,
@@ -143,17 +96,6 @@ const toResourceData = (resource) => {
 };
 
 const deleteResource = async (id) => {
-  if (!prisma) {
-    const index = memoryResources.findIndex((resource) => resource.id === id);
-
-    if (index === -1) {
-      throw new Error('Resource not found');
-    }
-
-    memoryResources.splice(index, 1);
-    return { message: 'Resource deleted successfully.' };
-  }
-
   await prisma.resource.delete({ where: { id } });
   return { message: 'Resource deleted successfully.' };
 };

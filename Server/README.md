@@ -21,6 +21,10 @@ admin. The password must be 6–72 UTF-8 bytes.
 
 ## 2. Create tables and the initial admin
 
+The API uses the PostgreSQL database configured by `DATABASE_URL` for users,
+resources, and bookings. Run the schema sync whenever the Prisma schema changes;
+this includes creating the `Booking` table for booking support.
+
 Run from `Server`:
 
 ```sh
